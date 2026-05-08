@@ -27,13 +27,9 @@ export default function HomePage() {
         } else {
           setSecciones(data as Seccion[]);
         }
-      })
-      .catch((err) => {
-        setError(err.message || "Error desconocido");
       });
   }, []);
 
-  // Mientras no hay datos ni error, cargando
   if (!secciones && !error) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
@@ -42,7 +38,6 @@ export default function HomePage() {
     );
   }
 
-  // Error
   if (error) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
