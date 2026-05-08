@@ -11,12 +11,12 @@ export default function NuevaMascotaPage() {
 
   // Campos del propietario
   const [buscarCliente, setBuscarCliente] = useState("");
-  const [clienteEncontrado, setClienteEncontrado] = useState<{
-    id: string;
-    nombre: string;
-    cedula: string;
-    telefono: string;
-  } | null>(null);
+ const [clienteEncontrado, setClienteEncontrado] = useState<{
+  id: string;
+  nombre_completo: string;
+  cedula: string;
+  telefono: string;
+} | null>(null);
   const [crearNuevo, setCrearNuevo] = useState(false);
   const [nombreProp, setNombreProp] = useState("");
   const [cedulaProp, setCedulaProp] = useState("");
