@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_PUBLIC_SUPABASE_URL = "https://tlttoxnrmdbgxxmgdhpd.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsdHRveG5ybWRiZ3h4bWdkaHBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODg3ODQsImV4cCI6MjA5MzU2NDc4NH0.0TtcFXXsvPhzqvy1mQ0VifadPWddEPZdkAlM1g_tqJo"
+  # Pega tu clave anónima completa arriba
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
