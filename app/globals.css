@@ -1,15 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 body {
-  @apply bg-white text-gray-900 antialiased;
+  background-color: white;
+  color: #111827;
   font-family: 'Poppins', ui-sans-serif, system-ui;
 }
 
 /* Mejor contraste en modo oscuro */
 .dark body {
-  @apply bg-gray-950 text-gray-100;
+  background-color: #030712;
+  color: #f3f4f6;
 }
 
 .dark .text-gray-400 {
