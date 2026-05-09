@@ -2,40 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-white text-gray-900 antialiased;
-    font-family: 'Poppins', ui-sans-serif, system-ui;
-  }
+body {
+  @apply bg-white text-gray-900 antialiased;
+  font-family: 'Poppins', ui-sans-serif, system-ui;
+}
 
-  /* Textos más oscuros en modo claro */
-  .text-gray-500 {
-    color: #4b5563 !important;  /* antes #6b7280 */
-  }
-  .text-gray-400 {
-    color: #6b7280 !important;  /* antes #9ca3af */
-  }
-  .text-gray-300 {
-    color: #9ca3af !important;  /* antes #d1d5db */
-  }
+/* Mejor contraste en modo oscuro */
+.dark body {
+  @apply bg-gray-950 text-gray-100;
+}
 
-  /* Modo oscuro: textos más brillantes */
-  .dark .text-gray-300,
-  .dark .text-gray-400,
-  .dark .text-gray-500 {
-    color: #e5e7eb !important;
-  }
+.dark .text-gray-400 {
+  color: #cbd5e1 !important;
+}
+.dark .text-gray-500 {
+  color: #e2e8f0 !important;
+}
 
-  /* Ajustes para móviles */
-  @media (max-width: 640px) {
-    html {
-      font-size: 15px; /* ligeramente más grande */
-    }
-    h1 {
-      font-size: 1.8rem !important;
-    }
-    h2 {
-      font-size: 1.5rem !important;
-    }
+/* Botones compactos */
+.btn-sm {
+  @apply px-3 py-1.5 text-sm font-medium rounded-lg;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+  h1 {
+    font-size: 1.8rem !important;
+  }
+  h2 {
+    font-size: 1.5rem !important;
   }
 }

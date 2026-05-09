@@ -14,13 +14,17 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/login");
+    if (!loading && !user) {
+      router.push("/login");
+    }
   }, [user, loading, router]);
 
   if (loading || !profile) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[#fafafa]">
-        <div className="animate-pulse text-gray-500">Cargando...</div>
+      <div className="flex justify-center items-center min-h-screen bg-[#fafafa] dark:bg-gray-950">
+        <div className="animate-pulse text-gray-500 dark:text-gray-400">
+          Cargando...
+        </div>
       </div>
     );
   }
@@ -43,19 +47,33 @@ export default function DashboardLayout({
     { label: "Herramientas", href: "/dashboard/herramientas", roles: ["superadmin"] },
   ];
 
-  const filteredMenu = menuItems.filter((item) => item.roles.includes(profile.role));
+  const filteredMenu = menuItems.filter((item) =>
+    item.roles.includes(profile.role)
+  );
 
   return (
     <div className="flex h-screen bg-[#fafafa] dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-gray-900 shadow-2xl border-r border-orange-100 dark:border-gray-800 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:relative md:translate-x-0`}>
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-gray-900 shadow-2xl border-r border-orange-100 dark:border-gray-800 transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:relative md:translate-x-0`}
+      >
         <div className="flex flex-col h-full p-6">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
-            <img src="/logo.png" alt="ANIMALIA" className="w-10 h-10 rounded-lg object-contain" />
+            <img
+              src="/logo.png"
+              alt="ANIMALIA"
+              className="w-10 h-10 rounded-lg object-contain"
+            />
             <div>
-              <h1 className="text-xl font-bold text-orange-600 leading-tight">ANIMALIA</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Centro Veterinario Universitario</p>
+              <h1 className="text-xl font-bold text-orange-600 leading-tight">
+                ANIMALIA
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Centro Veterinario Universitario
+              </p>
             </div>
           </div>
 
@@ -77,7 +95,8 @@ export default function DashboardLayout({
             <p>📧 info@animalia.cu</p>
             <p>📞 +53 55415537</p>
             <p className="pt-2 border-t border-gray-100 dark:border-gray-700 mt-2 text-gray-400 dark:text-gray-500">
-              Elaborado por <span className="font-semibold text-orange-600">neXo</span>
+              Elaborado por{" "}
+              <span className="font-semibold text-orange-600">neXo</span>
             </p>
           </div>
 
@@ -91,7 +110,9 @@ export default function DashboardLayout({
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 line-clamp-1">
                   {profile.nombre_completo || "Usuario"}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{profile.role}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                  {profile.role}
+                </p>
               </div>
             </div>
             <button
@@ -105,7 +126,12 @@ export default function DashboardLayout({
       </aside>
 
       {/* Overlay móvil */}
-      {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Contenido principal */}
       <div className="flex-1 flex flex-col">
@@ -114,11 +140,23 @@ export default function DashboardLayout({
             className="md:hidden bg-orange-50 dark:bg-gray-800 p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-orange-100"
             onClick={() => setSidebarOpen(true)}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
-          <div className="text-lg font-bold text-orange-600 ml-auto">ANIMALIA</div>
+          <div className="text-lg font-bold text-orange-600 ml-auto">
+            ANIMALIA
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
       </div>
@@ -131,9 +169,13 @@ export default function DashboardLayout({
           rel="noopener noreferrer"
           className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-xl transition-transform hover:scale-110"
         >
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M.057 24l1.687-6.163c-1.041-1.807-1.588-3.86-1.588-5.99C.156 5.204 5.472 0 12.004 0c3.159 0 6.124 1.232 8.354 3.47 2.232 2.24 3.463 5.212 3.458 8.38-.006 6.853-5.326 11.996-11.995 11.996h-.005c-1.993 0-3.945-.494-5.655-1.423L.057 24zm6.591-3.804l.36.213c1.473.875 3.158 1.338 4.895 1.338 5.718 0 10.278-4.66 10.283-10.389.003-2.777-1.076-5.386-3.037-7.348-1.96-1.96-4.57-3.04-7.347-3.04-5.724 0-10.292 4.667-10.292 10.398 0 1.943.536 3.84 1.55 5.479l.247.394-1.002 3.655 3.343-.7z"/>
-            <path d="M17.853 14.29c-.217-.109-1.281-.633-1.48-.706-.198-.073-.343-.109-.487.11-.145.22-.559.707-.685.852-.126.145-.253.163-.47.054-.218-.109-.917-.338-1.747-1.078-.646-.575-1.082-1.286-1.209-1.503-.127-.218-.013-.336.096-.445.099-.099.218-.253.327-.38.109-.126.145-.218.218-.362.073-.145.036-.272-.018-.38-.055-.109-.487-1.173-.667-1.607-.176-.424-.355-.365-.487-.372-.127-.006-.273-.007-.418-.007-.145 0-.38.054-.58.272-.2.218-.76.743-.76 1.812 0 1.07.78 2.103.89 2.248.108.145 1.535 2.343 3.722 3.285 2.187.942 2.187.628 2.58.588.393-.04 1.272-.52 1.451-1.022.18-.502.18-.932.126-1.022-.054-.09-.199-.145-.416-.254z"/>
+          <svg
+            className="w-6 h-6"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M.057 24l1.687-6.163c-1.041-1.807-1.588-3.86-1.588-5.99C.156 5.204 5.472 0 12.004 0c3.159 0 6.124 1.232 8.354 3.47 2.232 2.24 3.463 5.212 3.458 8.38-.006 6.853-5.326 11.996-11.995 11.996h-.005c-1.993 0-3.945-.494-5.655-1.423L.057 24zm6.591-3.804l.36.213c1.473.875 3.158 1.338 4.895 1.338 5.718 0 10.278-4.66 10.283-10.389.003-2.777-1.076-5.386-3.037-7.348-1.96-1.96-4.57-3.04-7.347-3.04-5.724 0-10.292 4.667-10.292 10.398 0 1.943.536 3.84 1.55 5.479l.247.394-1.002 3.655 3.343-.7z" />
+            <path d="M17.853 14.29c-.217-.109-1.281-.633-1.48-.706-.198-.073-.343-.109-.487.11-.145.22-.559.707-.685.852-.126.145-.253.163-.47.054-.218-.109-.917-.338-1.747-1.078-.646-.575-1.082-1.286-1.209-1.503-.127-.218-.013-.336.096-.445.099-.099.218-.253.327-.38.109-.126.145-.218.218-.362.073-.145.036-.272-.018-.38-.055-.109-.487-1.173-.667-1.607-.176-.424-.355-.365-.487-.372-.127-.006-.273-.007-.418-.007-.145 0-.38.054-.58.272-.2.218-.76.743-.76 1.812 0 1.07.78 2.103.89 2.248.108.145 1.535 2.343 3.722 3.285 2.187.942 2.187.628 2.58.588.393-.04 1.272-.52 1.451-1.022.18-.502.18-.932.126-1.022-.054-.09-.199-.145-.416-.254z" />
           </svg>
         </a>
       )}
