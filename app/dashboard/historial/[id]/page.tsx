@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { useRouter, useParams } from "next/navigation";
 
 type Historia = {
   id: string;
@@ -17,31 +18,36 @@ type Mascota = {
   numero_historia_clinica: string;
   nombre: string;
   especie: string;
+  estado: string;
 };
 
-export default function HistorialPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function HistorialPage() {
+  const { id } = useParams<{ id: string }>();
   const { profile } = useAuth();
+  const router = useRouter();
+
   const [mascota, setMascota] = useState<Mascota | null>(null);
   const [historias, setHistorias] = useState<Historia[]>([]);
   const [loading, setLoading] = useState(true);
   const [nuevaDescripcion, setNuevaDescripcion] = useState("");
   const [nuevoTipo, setNuevoTipo] = useState("consulta");
   const [message, setMessage] = useState("");
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState<string>("activa");
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !id) return;
 
     const fetchData = async () => {
-      // Cargar mascota
       const { data: mascotaData } = await supabase
         .from("mascotas")
-        .select("*")
+        .select("id, numero_historia_clinica, nombre, especie, estado")
         .eq("id", id)
         .single();
-      if (mascotaData) setMascota(mascotaData);
+      if (mascotaData) {
+        setMascota(mascotaData);
+        setEstadoSeleccionado(mascotaData.estado ?? "activa");
+      }
 
-      // Cargar historial
       const { data: historialData } = await supabase
         .from("historias_clinicas")
         .select("*")
@@ -55,29 +61,42 @@ export default function HistorialPage({ params }: { params: Promise<{ id: string
     fetchData();
   }, [id, profile]);
 
-  const handleAgregarHistoria = async () => {
-    if (!nuevaDescripcion.trim()) return;
+  const handleGuardarEntrada = async () => {
+    if (!mascota || !id) return;
 
-    const { error } = await supabase.from("historias_clinicas").insert({
-      mascota_id: id,
-      veterinario_id: profile!.id,
-      tipo: nuevoTipo,
-      descripcion: nuevaDescripcion,
-    });
+    // 1. Actualizar el estado de la mascota si cambió
+    if (estadoSeleccionado !== mascota.estado) {
+      const { error: errorEstado } = await supabase
+        .from("mascotas")
+        .update({ estado: estadoSeleccionado })
+        .eq("id", mascota.id);
 
-    if (error) {
-      setMessage("Error: " + error.message);
-    } else {
-      setMessage("Historial actualizado.");
-      setNuevaDescripcion("");
-      // Refrescar la lista
-      const { data } = await supabase
-        .from("historias_clinicas")
-        .select("*")
-        .eq("mascota_id", id)
-        .order("fecha", { ascending: false });
-      if (data) setHistorias(data);
+      if (errorEstado) {
+        setMessage("Error al actualizar estado: " + errorEstado.message);
+        return;
+      }
     }
+
+    // 2. Insertar nueva entrada si hay texto
+    if (nuevaDescripcion.trim()) {
+      const { error: errorHistoria } = await supabase.from("historias_clinicas").insert({
+        mascota_id: id,
+        veterinario_id: profile!.id,
+        tipo: nuevoTipo,
+        descripcion: nuevaDescripcion,
+      });
+
+      if (errorHistoria) {
+        setMessage("Error al guardar entrada: " + errorHistoria.message);
+        return;
+      }
+    }
+
+    // 3. Redirigir a pacientes
+    setMessage("✅ Cambios guardados. Volviendo...");
+    setTimeout(() => {
+      router.push("/dashboard/pacientes");
+    }, 1200);
   };
 
   if (loading) return <p className="p-4">Cargando historial...</p>;
@@ -92,28 +111,43 @@ export default function HistorialPage({ params }: { params: Promise<{ id: string
       </h1>
       <p className="text-sm text-gray-500 mb-6">Nº HC: {mascota.numero_historia_clinica}</p>
 
-      {/* Lista de entradas */}
+      {puedeEditar && (
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl mb-6 flex items-center gap-4 flex-wrap">
+          <span className="text-sm font-medium">Estado del paciente:</span>
+          <select
+            value={estadoSeleccionado}
+            onChange={(e) => setEstadoSeleccionado(e.target.value)}
+            className="border p-2 rounded-lg bg-white dark:bg-gray-700 text-sm"
+          >
+            <option value="activa">🟢 Activa</option>
+            <option value="baja">🔴 Baja</option>
+          </select>
+          <span className={`px-3 py-1 rounded-full text-xs font-bold ${estadoSeleccionado === 'activa' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {estadoSeleccionado === 'activa' ? 'ACTIVA' : 'BAJA'}
+          </span>
+        </div>
+      )}
+
       <div className="space-y-4 mb-8">
         {historias.length === 0 && <p>No hay entradas en el historial.</p>}
         {historias.map((h) => (
-          <div key={h.id} className="bg-white p-4 rounded shadow">
+          <div key={h.id} className="bg-white dark:bg-gray-900 p-4 rounded shadow">
             <div className="flex justify-between text-sm text-gray-500 mb-1">
-              <span>{h.fecha}</span>
+              <span>{new Date(h.fecha).toLocaleDateString()}</span>
               <span className="capitalize">{h.tipo}</span>
             </div>
-            <p className="text-gray-800">{h.descripcion}</p>
+            <p className="text-gray-800 dark:text-gray-200">{h.descripcion}</p>
           </div>
         ))}
       </div>
 
-      {/* Formulario para añadir entrada (solo vet/superadmin) */}
       {puedeEditar && (
-        <div className="bg-gray-100 p-6 rounded">
+        <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-xl">
           <h2 className="text-xl font-semibold mb-3">Agregar al historial</h2>
           <select
             value={nuevoTipo}
             onChange={(e) => setNuevoTipo(e.target.value)}
-            className="border p-2 rounded mb-2 w-full"
+            className="border p-2 rounded mb-2 w-full bg-white dark:bg-gray-700"
           >
             <option value="consulta">Consulta</option>
             <option value="vacuna">Vacuna</option>
@@ -126,13 +160,14 @@ export default function HistorialPage({ params }: { params: Promise<{ id: string
             onChange={(e) => setNuevaDescripcion(e.target.value)}
             placeholder="Descripción del diagnóstico, tratamiento, etc."
             rows={4}
-            className="border p-2 rounded w-full mb-2"
+            className="border p-2 rounded w-full mb-2 bg-white dark:bg-gray-700"
           />
           <button
-            onClick={handleAgregarHistoria}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            onClick={handleGuardarEntrada}
+            disabled={!nuevaDescripcion.trim() && estadoSeleccionado === mascota?.estado}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
           >
-            Guardar entrada
+            Guardar entrada y estado
           </button>
           {message && (
             <p className={`mt-2 text-sm ${message.startsWith("Error") ? "text-red-500" : "text-green-600"}`}>

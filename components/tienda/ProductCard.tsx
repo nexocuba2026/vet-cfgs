@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 
@@ -13,45 +13,10 @@ type Producto = {
   categoria: string;
 };
 
-export default function ProductCard({ producto }: { producto: Producto }) {
+export default function ProductCard({ producto, onAdd }: { producto: Producto; onAdd?: (producto: Producto) => void }) {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [imagenLocal, setImagenLocal] = useState<string | null>(null);
-
-  // Descarga la imagen y la convierte a base64 para evitar problemas de carga
-  useEffect(() => {
-    if (!producto.imagen_url) {
-      setImagenLocal(null);
-      return;
-    }
-
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    fetch(producto.imagen_url, { signal })
-      .then((response) => {
-        if (!response.ok) throw new Error("No se pudo cargar la imagen");
-        return response.blob();
-      })
-      .then((blob) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-      })
-      .then((dataUrl) => {
-        setImagenLocal(dataUrl);
-      })
-      .catch((error) => {
-        console.warn("Error cargando imagen:", error);
-        setImagenLocal(null); // se usará el placeholder automáticamente
-      });
-
-    return () => controller.abort();
-  }, [producto.imagen_url]);
 
   const agregarAlCarrito = async () => {
     if (!profile) return;
@@ -98,79 +63,42 @@ export default function ProductCard({ producto }: { producto: Producto }) {
     }
 
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    if (onAdd) onAdd(producto);
     setLoading(false);
+    setTimeout(() => setAdded(false), 2000);
   };
 
-  // Fuente de la imagen: la descargada en base64, o el placeholder
-  const srcImagen = imagenLocal || "/placeholder.png";
-
   return (
-    <>
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-        {/* Contenedor de la imagen */}
-        <div
-          className="w-full h-48 flex items-center justify-center bg-gray-100 cursor-pointer"
-          onClick={() => setLightboxOpen(true)}
-        >
-          <img
-            src={srcImagen}
-            alt={producto.nombre}
-            className="max-h-full max-w-full object-contain"
-            onError={(e) => {
-              // Si falla incluso la base64, mostramos placeholder
-              (e.target as HTMLImageElement).src = "/placeholder.png";
-            }}
-          />
-        </div>
-
-        {/* Información del producto */}
-        <div className="p-4 flex flex-col gap-2 flex-1">
-          <span className="text-xs font-medium text-blue-600 uppercase">
-            {producto.categoria}
-          </span>
-          <h3 className="font-bold text-gray-800">{producto.nombre}</h3>
-          <p className="text-xs text-gray-500 line-clamp-2">{producto.descripcion}</p>
-          <div className="mt-auto flex items-center justify-between">
-            <span className="text-2xl font-bold text-green-700">
-              ${producto.precio.toFixed(2)}
-            </span>
-            <button
-              onClick={agregarAlCarrito}
-              disabled={loading}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
-                added
-                  ? "bg-green-500 text-white"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
-            >
-              {added ? "✓ Agregado" : loading ? "..." : "+ Carrito"}
-            </button>
-          </div>
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+      <div className="relative h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <img
+          src={producto.imagen_url || "/placeholder.png"}
+          alt={producto.nombre}
+          className="object-contain max-h-full max-w-full p-4"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/placeholder.png";
+          }}
+        />
+      </div>
+      <div className="p-4 flex flex-col gap-2 flex-1">
+        <span className="text-xs font-medium text-orange-600 uppercase">{producto.categoria}</span>
+        <h3 className="font-bold text-gray-800 dark:text-gray-200">{producto.nombre}</h3>
+        <p className="text-xs text-gray-500 line-clamp-2">{producto.descripcion}</p>
+        <div className="mt-auto flex items-center justify-between pt-2">
+          <span className="text-xl font-bold text-green-600">${producto.precio.toFixed(2)}</span>
+          <button
+            onClick={agregarAlCarrito}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              added
+                ? "bg-green-500 text-white"
+                : "bg-orange-500 hover:bg-orange-600 text-white"
+            }`}
+          >
+            {added ? "✓ Agregado" : loading ? "..." : "+ Carrito"}
+          </button>
         </div>
       </div>
-
-      {/* Lightbox (ampliar imagen) */}
-      {lightboxOpen && (
-        <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={() => setLightboxOpen(false)}
-        >
-          <div className="relative max-w-[90vw] max-h-[90vh]">
-            <img
-              src={srcImagen}
-              alt={producto.nombre}
-              className="object-contain max-h-[90vh] rounded-xl"
-            />
-            <button
-              onClick={() => setLightboxOpen(false)}
-              className="absolute -top-8 right-0 text-white text-2xl hover:text-orange-400"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

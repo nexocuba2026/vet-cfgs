@@ -4,135 +4,143 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-type Seccion = {
-  seccion: string;
-  contenido: {
-    titulo?: string;
-    texto?: string;
-    items?: string[];
-  };
-};
-
 export default function HomePage() {
-  const [secciones, setSecciones] = useState<Seccion[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [contenido, setContenido] = useState<any>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase
       .from("contenido_web")
       .select("*")
-      .then(({ data, error }) => {
-        if (error) {
-          setError(error.message);
-        } else {
-          setSecciones(data as Seccion[]);
+      .then(({ data }) => {
+        if (data) {
+          const obj: any = {};
+          data.forEach((item: any) => {
+            obj[item.seccion] = item.contenido;
+          });
+          setContenido(obj);
         }
+        setLoading(false);
       });
   }, []);
 
-  if (!secciones && !error) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <p className="text-gray-500">Cargando...</p>
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="animate-pulse text-gray-500">Cargando...</div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <p className="text-red-600">Error: {error}</p>
-      </div>
-    );
-  }
-
-  const inicio = secciones?.find((s) => s.seccion === "inicio")?.contenido;
-  const servicios = secciones?.find((s) => s.seccion === "servicios")?.contenido;
-  const faq = secciones?.find((s) => s.seccion === "faq")?.contenido;
+  const inicio = contenido.inicio || {};
+  const servicios = contenido.servicios || {};
+  const faq = contenido.faq || {};
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Encabezado */}
-      <header className="bg-white shadow p-4 flex justify-between items-center">
-        <span className="text-xl font-bold text-blue-700">🐾 Clínica Vet</span>
-        <div className="flex gap-3">
-          <Link
-            href="/login"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Iniciar sesión
-          </Link>
-          <Link
-            href="/registro"
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"
-          >
-            Registrarse
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-800 dark:text-gray-200">
+      {/* Banner principal con imagen de fondo opaca */}
+      <section
+        className="relative h-screen flex items-center justify-center bg-cover bg-center"
+        style={{
+          backgroundImage: `url('/banner.jpg')`, // Cambia por tu imagen
+        }}
+      >
+        {/* Overlay con gradiente para mejor legibilidad */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70"></div>
 
-      {/* Sección Inicio */}
-      <section className="bg-blue-600 text-white py-20 px-4 text-center">
-        <h1 className="text-4xl font-bold mb-4">
-          {inicio?.titulo || "Bienvenidos a nuestra Clínica Veterinaria"}
-        </h1>
-        <p className="text-lg max-w-2xl mx-auto">
-          {inicio?.texto || "Cuidamos de tu mascota con amor y profesionalidad."}
-        </p>
+        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 drop-shadow-2xl tracking-tight">
+            {inicio.titulo || "ANIMALIA"}
+          </h1>
+          <p className="text-lg md:text-2xl text-gray-200 mb-10 max-w-3xl mx-auto leading-relaxed">
+            {inicio.texto || "Centro Veterinario Universitario de Cienfuegos. Cuidamos a tu mascota con ciencia y dedicación."}
+          </p>
+
+          {/* Botones modernos y grandes */}
+          <div className="flex flex-wrap justify-center gap-6">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg px-10 py-5 rounded-full shadow-2xl hover:shadow-orange-500/30 transition-all duration-300 transform hover:scale-105"
+            >
+              <span>🔐</span> Iniciar sesión
+            </Link>
+            <Link
+              href="/registro"
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/30 hover:bg-white/20 text-white font-bold text-lg px-10 py-5 rounded-full shadow-2xl hover:shadow-white/10 transition-all duration-300 transform hover:scale-105"
+            >
+              <span>✨</span> Registrarse
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* Sección Servicios */}
-      <section className="py-16 px-4 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          {servicios?.titulo || "Nuestros Servicios"}
+      <section className="py-24 px-4 max-w-7xl mx-auto">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-orange-600">
+          {servicios.titulo || "Nuestros Servicios"}
         </h2>
-        <p className="text-center text-gray-600 mb-8">
-          {servicios?.texto || "Ofrecemos atención integral para tu mascota."}
+        <p className="text-center text-gray-600 dark:text-gray-400 mb-16 max-w-2xl mx-auto text-lg">
+          {servicios.texto || "Ofrecemos atención integral para tu mascota."}
         </p>
-        {servicios?.items && servicios.items.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {servicios.items.map((item, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {(servicios.items || ["Consultas generales", "Vacunación", "Cirugía", "Hospitalización", "Peluquería canina", "Análisis clínicos"]).map(
+            (item: string, i: number) => (
               <div
                 key={i}
-                className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+                className="bg-gray-50 dark:bg-gray-900 p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-800 group hover:-translate-y-2"
               >
-                <p className="font-semibold text-lg">{item}</p>
+                <div className="text-5xl mb-6">🐾</div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">{item}</h3>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  Atención especializada con los mejores profesionales.
+                </p>
               </div>
-            ))}
-          </div>
-        )}
+            )
+          )}
+        </div>
       </section>
 
       {/* Sección FAQ */}
-      <section className="bg-white py-16 px-4 max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          {faq?.titulo || "Preguntas Frecuentes"}
-        </h2>
-        <p className="text-center text-gray-600 mb-8">
-          {faq?.texto || "Respuestas a las dudas más comunes."}
-        </p>
-        {faq?.items && faq.items.length > 0 && (
-          <div className="space-y-4">
-            {faq.items.map((item, i) => (
-              <details
-                key={i}
-                className="bg-gray-50 p-4 rounded-lg border"
-              >
-                <summary className="font-medium cursor-pointer">
-                  {item}
-                </summary>
-                <p className="mt-2 text-gray-600">
-                  Información detallada sobre esta pregunta.
-                </p>
-              </details>
-            ))}
+      <section className="bg-gray-100 dark:bg-gray-900 py-24 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-orange-600">
+            {faq.titulo || "Preguntas Frecuentes"}
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-16 max-w-2xl mx-auto text-lg">
+            {faq.texto || "Respuestas a las dudas más comunes."}
+          </p>
+          <div className="space-y-6">
+            {(faq.items || ["¿Cuáles son los horarios?", "¿Aceptan emergencias?", "¿Cómo agendar una cita?"]).map(
+              (item: string, i: number) => (
+                <details
+                  key={i}
+                  className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 group"
+                >
+                  <summary className="font-semibold cursor-pointer text-lg flex items-center justify-between">
+                    {item}
+                    <span className="text-orange-500 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  </summary>
+                  <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Información detallada sobre esta pregunta.
+                  </p>
+                </details>
+              )
+            )}
           </div>
-        )}
+        </div>
       </section>
 
       {/* Pie de página */}
-      <footer className="bg-gray-800 text-white text-center py-6 text-sm">
-        &copy; {new Date().getFullYear()} Clínica Veterinaria. Todos los derechos reservados.
+      <footer className="bg-gray-900 text-white py-12 text-center">
+        <div className="max-w-4xl mx-auto px-4">
+          <p className="text-3xl font-bold text-orange-500 mb-4">🐾 ANIMALIA</p>
+          <p className="text-gray-400 text-sm">
+            Centro Veterinario Universitario de Cienfuegos
+          </p>
+          <p className="text-gray-500 text-xs mt-2">
+            &copy; {new Date().getFullYear()} Todos los derechos reservados.
+          </p>
+        </div>
       </footer>
     </div>
   );

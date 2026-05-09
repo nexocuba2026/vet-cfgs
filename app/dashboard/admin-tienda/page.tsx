@@ -22,14 +22,15 @@ export default function AdminTiendaPage() {
   const [mensaje, setMensaje] = useState("");
   const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
 
-  useEffect(() => {
-    if (profile?.role === "superadmin") fetchProductos();
-  }, [profile]);
-
+  // Carga productos al montar y cuando se cambia de edición
   const fetchProductos = async () => {
     const { data } = await supabase.from("productos").select("*").order("nombre");
     if (data) setProductos(data);
   };
+
+  useEffect(() => {
+    if (profile?.role === "superadmin") fetchProductos();
+  }, [profile]);
 
   const guardarProducto = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +39,6 @@ export default function AdminTiendaPage() {
 
     let imagenUrl = editando.imagen_url;
 
-    // Si hay un archivo seleccionado, se sube a Storage
     if (archivoSeleccionado) {
       const nombreArchivo = `productos/${Date.now()}_${archivoSeleccionado.name}`;
       const { error: uploadError } = await supabase.storage
@@ -50,7 +50,6 @@ export default function AdminTiendaPage() {
         return;
       }
 
-      // Obtener URL pública
       const { data: urlData } = supabase.storage
         .from("archivos")
         .getPublicUrl(nombreArchivo);
@@ -79,6 +78,13 @@ export default function AdminTiendaPage() {
     }
   };
 
+  const eliminarProducto = async (id: string) => {
+    if (!confirm("¿Eliminar producto?")) return;
+    const { error } = await supabase.from("productos").delete().eq("id", id);
+    if (error) setMensaje("Error al eliminar: " + error.message);
+    else fetchProductos();
+  };
+
   if (!profile || profile.role !== "superadmin") return <p>Acceso denegado.</p>;
 
   return (
@@ -104,7 +110,11 @@ export default function AdminTiendaPage() {
         </button>
       </div>
 
-      {/* Tabla */}
+      {mensaje && (
+        <div className="bg-green-100 text-green-800 p-3 rounded-xl">{mensaje}</div>
+      )}
+
+      {/* Tabla de productos */}
       <div className="bg-white rounded-xl shadow-sm overflow-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
@@ -112,45 +122,59 @@ export default function AdminTiendaPage() {
               <th className="p-3 text-left">Nombre</th>
               <th className="p-3 text-left">Categoría</th>
               <th className="p-3 text-left">Precio</th>
-              <th className="p-3 text-left">Activo</th>
-              <th className="p-3 text-left">Acciones</th>
+              <th className="p-3 text-center">Activo</th>
+              <th className="p-3 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {productos.map((p) => (
-              <tr key={p.id} className="border-t">
-                                                <td className="p-3 flex gap-2">
-                  <button
-                    onClick={() => setEditando(p)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!confirm("¿Eliminar producto?")) return;
-                      await supabase.from("productos").delete().eq("id", p.id);
-                      fetchProductos();
-                    }}
-                    className="text-red-600 hover:underline"
-                  >
-                    Eliminar
-                  </button>
+            {productos.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="p-4 text-center text-gray-500">
+                  No hay productos registrados.
                 </td>
               </tr>
-            ))}
+            ) : (
+              productos.map((p) => (
+                <tr key={p.id} className="border-t hover:bg-gray-50">
+                  <td className="p-3 font-medium">{p.nombre}</td>
+                  <td className="p-3">{p.categoria}</td>
+                  <td className="p-3">${p.precio.toFixed(2)}</td>
+                  <td className="p-3 text-center">
+                    {p.activo ? "✅" : "❌"}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => setEditando(p)}
+                        className="text-blue-600 hover:underline text-xs"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => eliminarProducto(p.id)}
+                        className="text-red-600 hover:underline text-xs"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Modal edición */}
+      {/* Modal de edición/creación */}
       {editando && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <form
             onSubmit={guardarProducto}
-            className="bg-white rounded-xl p-6 w-full max-w-md space-y-4"
+            className="bg-white rounded-xl p-6 w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto"
           >
-            <h2 className="text-lg font-bold">{editando.id ? "Editar" : "Nuevo"} Producto</h2>
+            <h2 className="text-lg font-bold">
+              {editando.id ? "Editar" : "Nuevo"} Producto
+            </h2>
             <input
               type="text"
               placeholder="Nombre"
@@ -225,7 +249,6 @@ export default function AdminTiendaPage() {
                 Guardar
               </button>
             </div>
-            {mensaje && <p className="text-sm text-green-700">{mensaje}</p>}
           </form>
         </div>
       )}

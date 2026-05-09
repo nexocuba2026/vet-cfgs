@@ -59,13 +59,24 @@ export default function PedidosPage() {
           const viejoEstado = payload.old.estado;
 
           // Mostrar notificación si el estado cambió y el permiso está concedido
-          if (
-            nuevoEstado !== viejoEstado &&
-            typeof Notification !== "undefined" &&
-            Notification.permission === "granted"
-          ) {
-            new Notification("📦 Tu pedido ha sido actualizado", {
-              body: `Ahora está: ${nuevoEstado.toUpperCase()}`,
+                   // Mostrar notificación con texto personalizado según el estado
+          if (nuevoEstado !== viejoEstado && Notification.permission === "granted") {
+            let cuerpo = "";
+            switch (nuevoEstado) {
+              case "recibido":
+                cuerpo = "Hemos recibido tu pedido y lo estamos procesando.";
+                break;
+              case "enviado_entrega":
+                cuerpo = "Tu pedido ha salido a entrega.";
+                break;
+              case "entregado":
+                cuerpo = "Gracias por tu compra. ¡Hasta pronto!";
+                break;
+              default:
+                cuerpo = `Ahora está: ${nuevoEstado.toUpperCase()}`;
+            }
+            new Notification("📦 Pedido actualizado", {
+              body: cuerpo,
               icon: "/icon-192.png",
             });
           }
