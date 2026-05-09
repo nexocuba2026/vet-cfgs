@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Clínica Veterinaria",
-  description: "Sistema de gestión veterinaria",
+  title: "ANIMALIA Centro Veterinario Universitario",
+  description: "Sistema de gestión veterinaria de Cienfuegos",
 };
 
 export default function RootLayout({
@@ -25,6 +25,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ff9800" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
