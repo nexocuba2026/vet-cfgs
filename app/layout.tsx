@@ -24,21 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className="dark">
       <head>
-        {/* Activar modo oscuro según preferencia del sistema */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                  document.documentElement.classList.add('dark');
-                }
-              })();
-            `,
-          }}
-        />
-        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ff9800" />
       </head>
       <body
